@@ -2,20 +2,20 @@
 
 namespace Pheasant\Tests;
 
-use \Pheasant\Types;
-use \Pheasant\Tests\Examples\Post;
+use Pheasant\Tests\Examples\Post;
+use Pheasant\Types;
 
-class BasicMappingTest extends \Pheasant\Tests\MysqlTestCase
+class MappingTest extends \Pheasant\Tests\MysqlTestCase
 {
     public function setUp()
     {
         parent::setUp();
 
-        $this->table('post', array(
+        $this->table('post', [
             'postid' => new Types\IntegerType(11, 'primary auto_increment'),
             'title' => new Types\StringType(255, 'required'),
             'subtitle' => new Types\StringType(255),
-            ));
+            ]);
     }
 
     public function testBasicSaving()
@@ -25,22 +25,22 @@ class BasicMappingTest extends \Pheasant\Tests\MysqlTestCase
 
         $this->assertEquals((string) $post->postid, null);
         $this->assertInstanceOf('\Pheasant\Identity', $post->identity());
-        $this->assertEquals(array('title','subtitle'), array_keys($post->changes()));
+        $this->assertEquals(['title', 'subtitle'], array_keys($post->changes()));
         $this->assertFalse($post->isSaved());
         $post->save();
 
         $this->assertTrue($post->isSaved());
-        $this->assertEquals(array(), $post->changes());
+        $this->assertEquals([], $post->changes());
         $this->assertEquals($post->postid, 1);
         $this->assertEquals($post->title, 'First post, bitches!');
         $this->assertEquals($post->subtitle, 'Just because...');
 
         $post->title = 'Another title, perhaps';
         $this->assertTrue($post->isSaved());
-        $this->assertEquals(array('title'), array_keys($post->changes()));
+        $this->assertEquals(['title'], array_keys($post->changes()));
         $post->save();
 
-        $this->assertEquals(array(), $post->changes());
+        $this->assertEquals([], $post->changes());
         $this->assertEquals($post->title, 'Another title, perhaps');
     }
 
@@ -61,10 +61,10 @@ class BasicMappingTest extends \Pheasant\Tests\MysqlTestCase
 
     public function testImport()
     {
-        $posts = Post::import(array(
-            array('title'=>'First Post'),
-            array('title'=>'Second Post'),
-            ));
+        $posts = Post::import([
+            ['title' => 'First Post'],
+            ['title' => 'Second Post'],
+            ]);
 
         $this->assertEquals(count($posts), 2);
         $this->assertEquals($posts[0]->postid, 1);
@@ -98,6 +98,6 @@ class BasicMappingTest extends \Pheasant\Tests\MysqlTestCase
         $this->assertEquals($post->title, 'first post');
 
         $post->delete();
-        $this->assertRowCount(0, "SELECT * FROM post WHERE postid=1");
+        $this->assertRowCount(0, 'SELECT * FROM post WHERE postid=1');
     }
 }

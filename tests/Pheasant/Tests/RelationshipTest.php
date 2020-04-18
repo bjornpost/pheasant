@@ -1,10 +1,10 @@
 <?php
 
-namespace Pheasant\Tests\Relationships;
+namespace Pheasant\Tests;
 
-use \Pheasant\Tests\Examples\Hero;
-use \Pheasant\Tests\Examples\Power;
-use \Pheasant\Tests\Examples\SecretIdentity;
+use Pheasant\Tests\Examples\Hero;
+use Pheasant\Tests\Examples\Power;
+use Pheasant\Tests\Examples\SecretIdentity;
 
 class RelationshipTest extends \Pheasant\Tests\MysqlTestCase
 {
@@ -22,12 +22,12 @@ class RelationshipTest extends \Pheasant\Tests\MysqlTestCase
 
     public function testOneToManyViaPropertySetting()
     {
-        $hero = new Hero(array('alias'=>'Spider Man'));
+        $hero = new Hero(['alias' => 'Spider Man']);
         $hero->save();
         $this->assertEquals(count($hero->Powers), 0);
 
         // save via property access
-        $power = new Power(array('description'=>'Spider Senses'));
+        $power = new Power(['description' => 'Spider Senses']);
         $power->heroid = $hero->id;
         $power->save();
         $this->assertEquals(count($hero->Powers), 1);
@@ -36,12 +36,12 @@ class RelationshipTest extends \Pheasant\Tests\MysqlTestCase
 
     public function testOneToManyViaArrayAccess()
     {
-        $hero = new Hero(array('alias'=>'Spider Man'));
+        $hero = new Hero(['alias' => 'Spider Man']);
         $hero->save();
         $this->assertEquals(count($hero->Powers), 0);
 
         // save via adding
-        $power = new Power(array('description'=>'Super-human Strength'));
+        $power = new Power(['description' => 'Super-human Strength']);
         $hero->Powers[] = $power;
         $power->save();
         $this->assertEquals(count($hero->Powers), 1);
@@ -51,10 +51,10 @@ class RelationshipTest extends \Pheasant\Tests\MysqlTestCase
 
     public function testHasOneRelationship()
     {
-        $hero = new Hero(array('alias'=>'Spider Man'));
+        $hero = new Hero(['alias' => 'Spider Man']);
         $hero->save();
 
-        $identity = new SecretIdentity(array('realname'=>'Peter Parker'));
+        $identity = new SecretIdentity(['realname' => 'Peter Parker']);
         $identity->Hero = $hero;
         $identity->save();
 
@@ -65,8 +65,8 @@ class RelationshipTest extends \Pheasant\Tests\MysqlTestCase
 
     public function testPropertyReferencesResolvedInMapping()
     {
-        $identity = new SecretIdentity(array('realname'=>'Peter Parker'));
-        $hero = new Hero(array('alias'=>'Spider Man'));
+        $identity = new SecretIdentity(['realname' => 'Peter Parker']);
+        $hero = new Hero(['alias' => 'Spider Man']);
 
         // set the identityid before it's been saved, still null
         $hero->identityid = $identity->id;
@@ -80,15 +80,15 @@ class RelationshipTest extends \Pheasant\Tests\MysqlTestCase
 
     public function testFilteringCollectionsReturnedByRelationships()
     {
-        $spiderman = Hero::createHelper('Spider Man', 'Peter Parker', array(
-            'Super-human Strength', 'Spider Senses'
-        ));
-        $superman = Hero::createHelper('Super Man', 'Clark Kent', array(
-            'Super-human Strength', 'Invulnerability'
-        ));
-        $batman = Hero::createHelper('Batman', 'Bruce Wayne', array(
-            'Richness', 'Super-human Intellect'
-        ));
+        $spiderman = Hero::createHelper('Spider Man', 'Peter Parker', [
+            'Super-human Strength', 'Spider Senses',
+        ]);
+        $superman = Hero::createHelper('Super Man', 'Clark Kent', [
+            'Super-human Strength', 'Invulnerability',
+        ]);
+        $batman = Hero::createHelper('Batman', 'Bruce Wayne', [
+            'Richness', 'Super-human Intellect',
+        ]);
 
         $this->assertCount(2, $spiderman->Powers);
         $this->assertCount(1, $spiderman->Powers->filter('description LIKE ?', 'Super-human%')->toArray());
@@ -96,17 +96,17 @@ class RelationshipTest extends \Pheasant\Tests\MysqlTestCase
 
     public function testEmptyRelationshipsWithAllowEmpty()
     {
-        $hero = new Hero(array('alias'=>'Spider Man'));
+        $hero = new Hero(['alias' => 'Spider Man']);
         $hero->save();
 
         $this->assertNull($hero->SecretIdentity);
     }
-    
+
     public function testEmptyRelationshipsWithoutAllowEmpty()
     {
-        $power = new Power(array('description'=>'Spider Senses'));
+        $power = new Power(['description' => 'Spider Senses']);
         $power->save();
-        
+
         $this->expectException('\Pheasant\Exception');
         $foo = $power->Hero;
     }

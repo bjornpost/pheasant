@@ -2,23 +2,23 @@
 
 namespace Pheasant\Tests;
 
-use \Pheasant\Types;
+use Pheasant\Types;
 
-class ResultSetTestCase extends \Pheasant\Tests\MysqlTestCase
+class ResultSetTest extends \Pheasant\Tests\MysqlTestCase
 {
     public function setUp()
     {
         parent::setUp();
 
-        $t = $this->table('user', array(
-            'userid'=>new Types\IntegerType(8, 'primary auto_increment'),
-            'name'=>new Types\StringType(),
-            'value'=>new Types\IntegerType(),
-            'active'=>new Types\BooleanType(),
-        ));
+        $t = $this->table('user', [
+            'userid' => new Types\IntegerType(8, 'primary auto_increment'),
+            'name' => new Types\StringType(),
+            'value' => new Types\IntegerType(),
+            'active' => new Types\BooleanType(),
+        ]);
 
-        $t->insert(array('name'=>'Llama', 'active'=>false, 'value'=>24));
-        $t->insert(array('name'=>'Drama', 'active'=>true, 'value'=>NULL));
+        $t->insert(['name' => 'Llama', 'active' => false, 'value' => 24]);
+        $t->insert(['name' => 'Drama', 'active' => true, 'value' => null]);
     }
 
     public function testGettingARow()
@@ -26,12 +26,12 @@ class ResultSetTestCase extends \Pheasant\Tests\MysqlTestCase
         $rs = $this->connection()->execute('SELECT name,value,active FROM user');
         $this->assertEquals($rs->count(), 2);
 
-        $this->assertSame($rs->row(), array('name'=>'Llama', 'value'=>'24', 'active'=>'0'));
-        $this->assertSame($rs->row(), array('name'=>'Drama', 'value'=>NULL, 'active'=>'1'));
-        $this->assertSame($rs->row(), NULL);
+        $this->assertSame($rs->row(), ['name' => 'Llama', 'value' => '24', 'active' => '0']);
+        $this->assertSame($rs->row(), ['name' => 'Drama', 'value' => null, 'active' => '1']);
+        $this->assertSame($rs->row(), null);
 
         // this should rewind and seek
-        $this->assertEquals($rs->seek(1)->row(), array('name'=>'Drama', 'value'=>NULL, 'active'=>true));
+        $this->assertEquals($rs->seek(1)->row(), ['name' => 'Drama', 'value' => null, 'active' => true]);
     }
 
     public function testGettingAScalar()
@@ -51,7 +51,7 @@ class ResultSetTestCase extends \Pheasant\Tests\MysqlTestCase
     {
         $rs = $this->connection()->execute('SELECT name,value,active FROM user');
 
-        $this->assertEquals(iterator_to_array($rs->column()), array('Llama', 'Drama'));
+        $this->assertEquals(iterator_to_array($rs->column()), ['Llama', 'Drama']);
     }
 
     public function testGettingFieldsWithResults()
@@ -76,5 +76,4 @@ class ResultSetTestCase extends \Pheasant\Tests\MysqlTestCase
         $this->assertEquals($fields[1]->name, 'value');
         $this->assertEquals($fields[2]->name, 'active');
     }
-
 }

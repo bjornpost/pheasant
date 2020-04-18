@@ -2,13 +2,13 @@
 
 namespace Pheasant\Tests;
 
-use \Pheasant;
-use \Pheasant\DomainObject;
-use \Pheasant\Types;
-use \Pheasant\Events;
-use \Pheasant\Tests\Examples\EventTestObject;
+use Pheasant;
+use Pheasant\DomainObject;
+use Pheasant\Events;
+use Pheasant\Tests\Examples\EventTestObject;
+use Pheasant\Types;
 
-class EventsTestCase extends \Pheasant\Tests\MysqlTestCase
+class EventsTest extends \Pheasant\Tests\MysqlTestCase
 {
     public function setUp()
     {
@@ -23,9 +23,9 @@ class EventsTestCase extends \Pheasant\Tests\MysqlTestCase
     }
 
     /**
-     * Initialize DomainObject
+     * Initialize DomainObject.
      */
-    public function initialize($class, $callback=null)
+    public function initialize($class, $callback = null)
     {
         Pheasant::instance()
             ->register($class, $this->mapper)
@@ -37,105 +37,104 @@ class EventsTestCase extends \Pheasant\Tests\MysqlTestCase
     {
         $this->mapper->shouldReceive('save')->times(1);
 
-        $events = array();
-        $callback = function($e) use (&$events) { $events[]=$e; };
+        $events = [];
+        $callback = function ($e) use (&$events) { $events[] = $e; };
 
-        $this->initialize('Pheasant\DomainObject', function($builder) use ($callback) {
-            $builder->properties(array(
-                'test' => new Types\StringType()
-                ));
-            $builder->events(array(
+        $this->initialize('Pheasant\DomainObject', function ($builder) use ($callback) {
+            $builder->properties([
+                'test' => new Types\StringType(),
+                ]);
+            $builder->events([
                 'afterCreate' => $callback,
-                ));
+                ]);
         });
 
         $do = new DomainObject();
-        $do->test = "blargh";
+        $do->test = 'blargh';
         $do->save();
 
-        $this->assertEquals($do->test, "blargh");
-        $this->assertEquals($events, array('afterCreate'));
+        $this->assertEquals($do->test, 'blargh');
+        $this->assertEquals($events, ['afterCreate']);
     }
 
     public function testEventsBoundToObject()
     {
         $this->mapper->shouldReceive('save')->times(2);
-        $events = array();
+        $events = [];
 
-        $this->initialize('Pheasant\DomainObject', function($builder) {
-            $builder->properties(array(
-                'test' => new Types\StringType()
-                ));
+        $this->initialize('Pheasant\DomainObject', function ($builder) {
+            $builder->properties([
+                'test' => new Types\StringType(),
+                ]);
         });
 
         $do1 = new DomainObject();
         $do2 = new DomainObject();
 
-        $do1->events(array(
-            'afterSave'=>function($e) use (&$events) { $events[] = "do1.$e"; },
-            ));
+        $do1->events([
+            'afterSave' => function ($e) use (&$events) { $events[] = "do1.$e"; },
+            ]);
 
-        $do2->events(array(
-            'afterSave'=>function($e) use (&$events) { $events[] = "do2.$e"; },
-            ));
+        $do2->events([
+            'afterSave' => function ($e) use (&$events) { $events[] = "do2.$e"; },
+            ]);
 
         $do1->save();
         $do2->save();
 
-        $this->assertEquals($events, array('do1.afterSave', 'do2.afterSave'));
+        $this->assertEquals($events, ['do1.afterSave', 'do2.afterSave']);
     }
 
     public function testBuiltInEventMethods()
     {
         $this->mapper->shouldReceive('save')->times(1);
 
-        $this->initialize('Pheasant\Tests\Examples\EventTestObject', function($builder) {
-            $builder->properties(array(
-                'test' => new Types\StringType()
-                ));
+        $this->initialize('Pheasant\Tests\Examples\EventTestObject', function ($builder) {
+            $builder->properties([
+                'test' => new Types\StringType(),
+                ]);
         });
 
-        $do = EventTestObject::create(array('test'=>'llamas'));
-        $this->assertEquals(array('beforeSave','afterSave'), $do->events);
+        $do = EventTestObject::create(['test' => 'llamas']);
+        $this->assertEquals(['beforeSave', 'afterSave'], $do->events);
     }
 
     /**
-     * Events on objects returned by finder do not fire
+     * Events on objects returned by finder do not fire.
      */
     public function testIssue30()
     {
         $this->mapper->shouldReceive('save')->times(1);
 
-        $this->initialize('Pheasant\Tests\Examples\EventTestObject', function($builder) {
-            $builder->properties(array(
-                'test' => new Types\StringType()
-                ));
+        $this->initialize('Pheasant\Tests\Examples\EventTestObject', function ($builder) {
+            $builder->properties([
+                'test' => new Types\StringType(),
+                ]);
         });
 
-        $do = EventTestObject::fromArray(array('test'=>'llamas'), false);
+        $do = EventTestObject::fromArray(['test' => 'llamas'], false);
         $do->save();
 
-        $this->assertEquals($do->events, array('beforeSave','afterSave'));
+        $this->assertEquals($do->events, ['beforeSave', 'afterSave']);
     }
 
     public function testSystemWideInitializeEvent()
     {
-        $events = array();
+        $events = [];
         $ph = $this->pheasant;
 
-        $this->pheasant->events()->register('afterInitialize', function($e, $schema) use(&$events, $ph) {
-
+        $this->pheasant->events()->register('afterInitialize', function ($e, $schema) use (&$events, $ph) {
             // Issue #49
             // make sure this doesn't trigger recursion
             $mapper = $ph->mapperFor($schema->className());
 
-            $events []= func_get_args();
+            $events[] = func_get_args();
         });
 
-        $this->initialize('Pheasant\Tests\Examples\EventTestObject', function($builder) {
-            $builder->properties(array(
-                'test' => new Types\StringType()
-                ));
+        $this->initialize('Pheasant\Tests\Examples\EventTestObject', function ($builder) {
+            $builder->properties([
+                'test' => new Types\StringType(),
+                ]);
         });
 
         $this->assertCount(1, $events);
@@ -145,11 +144,11 @@ class EventsTestCase extends \Pheasant\Tests\MysqlTestCase
 
     public function testEventCorking()
     {
-        $fired = array();
+        $fired = [];
 
         $events = new Events();
-        $events->register('*', function() use(&$fired) {
-            $fired []= func_get_args();
+        $events->register('*', function () use (&$fired) {
+            $fired[] = func_get_args();
         });
 
         $events->cork();
@@ -165,14 +164,14 @@ class EventsTestCase extends \Pheasant\Tests\MysqlTestCase
         $events1 = new Events();
         $events2 = new Events();
 
-        $fired1 = array();
-        $fired2 = array();
+        $fired1 = [];
+        $fired2 = [];
 
-        $events1->register('*', function() use(&$fired1) {
-            $fired1 []= func_get_args();
+        $events1->register('*', function () use (&$fired1) {
+            $fired1[] = func_get_args();
         });
-        $events2->register('*', function() use(&$fired2) {
-            $fired2 []= func_get_args();
+        $events2->register('*', function () use (&$fired2) {
+            $fired2[] = func_get_args();
         });
 
         $events1->register('*', $events2);
@@ -187,19 +186,19 @@ class EventsTestCase extends \Pheasant\Tests\MysqlTestCase
     {
         $this->mapper->shouldReceive('save')->times(2);
 
-        $this->initialize('Pheasant\Tests\Examples\EventTestObject', function($builder) {
-            $builder->properties(array(
-                'test' => new Types\StringType()
-            ));
-            $builder->events(array(
-                'afterCreate' => function($event, $obj) {
+        $this->initialize('Pheasant\Tests\Examples\EventTestObject', function ($builder) {
+            $builder->properties([
+                'test' => new Types\StringType(),
+            ]);
+            $builder->events([
+                'afterCreate' => function ($event, $obj) {
                     $obj->save();
                 },
-            ));
+            ]);
         });
 
         $do = new EventTestObject();
-        $do->test = "blargh";
+        $do->test = 'blargh';
         $do->save();
 
         $this->assertTrue(true);

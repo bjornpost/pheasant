@@ -2,9 +2,9 @@
 
 namespace Pheasant\Tests\Sequences;
 
-use \Pheasant\Database\Mysqli\SequencePool;
+use Pheasant\Database\Mysqli\SequencePool;
 
-class SequenceTestCase extends \Pheasant\Tests\MysqlTestCase
+class SequenceTest extends \Pheasant\Tests\MysqlTestCase
 {
     public function setUp()
     {

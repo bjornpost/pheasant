@@ -1,7 +1,8 @@
 <?php
 
-namespace Pheasant\Tests\Transaction;
-use \Pheasant\Database\Mysqli\Transaction;
+namespace Pheasant\Tests;
+
+use Pheasant\Database\Mysqli\Transaction;
 
 class TransactionTest extends \Pheasant\Tests\MysqlTestCase
 {
@@ -18,7 +19,7 @@ class TransactionTest extends \Pheasant\Tests\MysqlTestCase
         $connection->shouldReceive('execute')->with('COMMIT')->once();
 
         $transaction = new Transaction($connection);
-        $transaction->callback(function(){
+        $transaction->callback(function () {
             return 'blargh';
         });
 
@@ -34,7 +35,7 @@ class TransactionTest extends \Pheasant\Tests\MysqlTestCase
         $connection->shouldReceive('execute')->with('ROLLBACK')->once();
 
         $transaction = new Transaction($connection);
-        $transaction->callback(function(){
+        $transaction->callback(function () {
             throw new \Exception('Eeeek!');
         });
 
@@ -44,14 +45,14 @@ class TransactionTest extends \Pheasant\Tests\MysqlTestCase
 
     public function testCallbacksWithConnectionCalls()
     {
-        $sql = "SELECT * FROM table";
+        $sql = 'SELECT * FROM table';
         $connection = \Mockery::mock('\Pheasant\Database\Mysqli\Connection');
         $connection->shouldReceive('execute')->with('BEGIN')->once();
         $connection->shouldReceive('execute')->with($sql)->once();
         $connection->shouldReceive('execute')->with('COMMIT')->once();
 
         $transaction = new Transaction($connection);
-        $transaction->callback(function() use ($connection, $sql) {
+        $transaction->callback(function () use ($connection, $sql) {
             $connection->execute($sql);
         });
 
@@ -66,7 +67,7 @@ class TransactionTest extends \Pheasant\Tests\MysqlTestCase
         $connection->shouldReceive('execute')->with('COMMIT')->once();
 
         $transaction = new Transaction($connection);
-        $transaction->callback(function($param) {
+        $transaction->callback(function ($param) {
             return $param;
         }, 'blargh');
 
@@ -87,7 +88,7 @@ class TransactionTest extends \Pheasant\Tests\MysqlTestCase
 
         $transaction = new Transaction($connection);
         $transaction->deferEvents($events);
-        $transaction->callback(function(){
+        $transaction->callback(function () {
             return 'blargh';
         });
 
@@ -108,8 +109,8 @@ class TransactionTest extends \Pheasant\Tests\MysqlTestCase
 
         $transaction = new Transaction($connection);
         $transaction->deferEvents($events);
-        $transaction->callback(function(){
-            throw new \Exception("Llamas :( :)");
+        $transaction->callback(function () {
+            throw new \Exception('Llamas :( :)');
         });
 
         $this->expectException('\Exception');

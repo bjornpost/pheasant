@@ -1,10 +1,10 @@
 <?php
 
-namespace Pheasant\Tests\Relationships;
+namespace Pheasant\Tests;
 
-use \Pheasant\Tests\Examples\Hero;
-use \Pheasant\Tests\Examples\Power;
-use \Pheasant\Tests\Examples\SecretIdentity;
+use Pheasant\Tests\Examples\Hero;
+use Pheasant\Tests\Examples\Power;
+use Pheasant\Tests\Examples\SecretIdentity;
 
 class IncludesTest extends \Pheasant\Tests\MysqlTestCase
 {
@@ -23,18 +23,18 @@ class IncludesTest extends \Pheasant\Tests\MysqlTestCase
             ->connection()
             ->execute(
                 'INSERT INTO sequences (name, id) VALUES (?, ?)',
-                array('SECRETIDENTITY_ID_SEQ', 100)
+                ['SECRETIDENTITY_ID_SEQ', 100]
             );
 
-        $spiderman = Hero::createHelper('Spider Man', 'Peter Parker', array(
-            'Super-human Strength', 'Spider Senses'
-        ));
-        $superman = Hero::createHelper('Super Man', 'Clark Kent', array(
-            'Super-human Strength', 'Invulnerability'
-        ));
-        $batman = Hero::createHelper('Batman', 'Bruce Wayne', array(
-            'Richness', 'Super-human Intellect'
-        ));
+        $spiderman = Hero::createHelper('Spider Man', 'Peter Parker', [
+            'Super-human Strength', 'Spider Senses',
+        ]);
+        $superman = Hero::createHelper('Super Man', 'Clark Kent', [
+            'Super-human Strength', 'Invulnerability',
+        ]);
+        $batman = Hero::createHelper('Batman', 'Bruce Wayne', [
+            'Richness', 'Super-human Intellect',
+        ]);
     }
 
     public function testIncludesHitsCache()
@@ -48,7 +48,7 @@ class IncludesTest extends \Pheasant\Tests\MysqlTestCase
         });
 
         // the first lookup of SecretIdentity should cache all the rest
-        $heros = Hero::all()->includes(array('SecretIdentity'))->toArray();
+        $heros = Hero::all()->includes(['SecretIdentity'])->toArray();
         $this->assertNotNull($heros[0]->SecretIdentity);
 
         // these should be from cache
@@ -56,7 +56,7 @@ class IncludesTest extends \Pheasant\Tests\MysqlTestCase
         $this->assertNotNull($heros[1]->SecretIdentity);
         $this->assertNotNull($heros[2]->SecretIdentity);
 
-        $this->assertEquals(0, $queries, "this should have hit the cache");
+        $this->assertEquals(0, $queries, 'this should have hit the cache');
     }
 
     public function testNestedIncludesHitsCache()
@@ -65,12 +65,13 @@ class IncludesTest extends \Pheasant\Tests\MysqlTestCase
 
         $this->connection()->filterChain()->onQuery(function ($sql) use (&$queries) {
             ++$queries;
+
             return $sql;
         });
 
         // the first lookup of SecretIdentity should cache all the rest
         $powers = Power::all()->includes(
-          array('Hero' => array('SecretIdentity')))->toArray();
+          ['Hero' => ['SecretIdentity']])->toArray();
         $this->assertNotNull($powers[0]->Hero->SecretIdentity);
 
         // these should be from cache
@@ -78,6 +79,6 @@ class IncludesTest extends \Pheasant\Tests\MysqlTestCase
         foreach ($powers as $power) {
             $this->assertNotNull($power->Hero->SecretIdentity);
         }
-        $this->assertEquals(0, $queries, "this should have hit the cache");
+        $this->assertEquals(0, $queries, 'this should have hit the cache');
     }
 }

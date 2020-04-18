@@ -1,10 +1,10 @@
 <?php
 
-namespace Pheasant\Tests\Relationships;
+namespace Pheasant\Tests;
 
-use \Pheasant\Tests\Examples\Hero;
-use \Pheasant\Tests\Examples\Power;
-use \Pheasant\Tests\Examples\SecretIdentity;
+use Pheasant\Tests\Examples\Hero;
+use Pheasant\Tests\Examples\Power;
+use Pheasant\Tests\Examples\SecretIdentity;
 
 class JoinTest extends \Pheasant\Tests\MysqlTestCase
 {
@@ -19,22 +19,22 @@ class JoinTest extends \Pheasant\Tests\MysqlTestCase
             ->create('secretidentity', SecretIdentity::schema())
             ;
 
-        $this->spiderman = Hero::createHelper('Spider Man', 'Peter Parker', array(
-            'Super-human Strength', 'Spider Senses'
-        ));
+        $this->spiderman = Hero::createHelper('Spider Man', 'Peter Parker', [
+            'Super-human Strength', 'Spider Senses',
+        ]);
 
-        $this->superman = Hero::createHelper('Super Man', 'Clark Kent', array(
-            'Super-human Strength', 'Invulnerability'
-        ));
+        $this->superman = Hero::createHelper('Super Man', 'Clark Kent', [
+            'Super-human Strength', 'Invulnerability',
+        ]);
 
-        $this->batman = Hero::createHelper('Batman', 'Bruce Wayne', array(
-            'Richness', 'Super-human Intellect'
-        ));
+        $this->batman = Hero::createHelper('Batman', 'Bruce Wayne', [
+            'Richness', 'Super-human Intellect',
+        ]);
     }
 
     public function testBasicJoiningResultsInCartesianProduct()
     {
-        $collection = Hero::all()->join(array('Powers', 'SecretIdentity'));
+        $collection = Hero::all()->join(['Powers', 'SecretIdentity']);
         $objects = iterator_to_array($collection);
 
         // the cartesian product of hero x identity x power
@@ -43,7 +43,7 @@ class JoinTest extends \Pheasant\Tests\MysqlTestCase
 
     public function testBasicJoiningBringsInAllColumns()
     {
-        $collection = Hero::all()->join(array('Powers', 'SecretIdentity'));
+        $collection = Hero::all()->join(['Powers', 'SecretIdentity']);
         $objects = iterator_to_array($collection);
 
         $this->assertTrue($collection[0]->has('realname'));
@@ -53,7 +53,7 @@ class JoinTest extends \Pheasant\Tests\MysqlTestCase
     public function testJoiningWithUnique()
     {
         $collection = Hero::all()
-            ->join(array('Powers', 'SecretIdentity'))
+            ->join(['Powers', 'SecretIdentity'])
             ->unique();
         $objects = iterator_to_array($collection);
 
@@ -63,7 +63,7 @@ class JoinTest extends \Pheasant\Tests\MysqlTestCase
     public function testJoiningWithGroupBy()
     {
         $collection = Hero::all()
-            ->join(array('Powers', 'SecretIdentity'))
+            ->join(['Powers', 'SecretIdentity'])
             ->groupBy('Hero.id');
         $objects = iterator_to_array($collection);
 
@@ -73,19 +73,19 @@ class JoinTest extends \Pheasant\Tests\MysqlTestCase
     public function testJoiningAndFiltering()
     {
         $collection = Hero::all()
-            ->join(array('Powers', 'SecretIdentity'))
-            ->filter('SecretIdentity.realname = ?', "Peter Parker")
+            ->join(['Powers', 'SecretIdentity'])
+            ->filter('SecretIdentity.realname = ?', 'Peter Parker')
             ;
 
         $this->assertCount(1 * 2, $collection);
-        $this->assertEquals("Spider Man", $collection[0]->alias);
+        $this->assertEquals('Spider Man', $collection[0]->alias);
     }
 
     public function testNestedJoiningAndFiltering()
     {
         $collection = Power::all()
-            ->join(array('Hero'=>array('SecretIdentity'=>array('Hero h2'))))
-            ->filter('SecretIdentity.realname = ?', "Peter Parker")
+            ->join(['Hero' => ['SecretIdentity' => ['Hero h2']]])
+            ->filter('SecretIdentity.realname = ?', 'Peter Parker')
             ;
 
         $this->assertCount(2, $collection);

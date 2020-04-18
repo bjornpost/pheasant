@@ -2,12 +2,11 @@
 
 namespace Pheasant\Tests;
 
-use \Pheasant\Query\Criteria;
-use \Pheasant;
-use \Pheasant\Tests\Examples\User;
-use \Pheasant\Tests\Examples\UserPref;
+use Pheasant\Query\Criteria;
+use Pheasant\Tests\Examples\User;
+use Pheasant\Tests\Examples\UserPref;
 
-class FindingTestCase extends \Pheasant\Tests\MysqlTestCase
+class FindingTest extends \Pheasant\Tests\MysqlTestCase
 {
     public function setUp()
     {
@@ -20,16 +19,16 @@ class FindingTestCase extends \Pheasant\Tests\MysqlTestCase
             ;
 
         // create some users
-        $this->users = User::import(array(
-            array('firstname'=>'Frank','lastname'=>'Castle'),
-            array('firstname'=>'Cletus','lastname'=>'Kasady')
-        ));
+        $this->users = User::import([
+            ['firstname' => 'Frank', 'lastname' => 'Castle'],
+            ['firstname' => 'Cletus', 'lastname' => 'Kasady'],
+        ]);
 
         // create some user prefs
-        $this->userprefs = UserPref::import(array(
-            array('User'=>$this->users[0],'pref'=>'autologin','value'=>'yes'),
-            array('User'=>$this->users[1],'pref'=>'autologin','value'=>'no')
-        ));
+        $this->userprefs = UserPref::import([
+            ['User' => $this->users[0], 'pref' => 'autologin', 'value' => 'yes'],
+            ['User' => $this->users[1], 'pref' => 'autologin', 'value' => 'no'],
+        ]);
 
         $this->assertTrue($this->userprefs[0]->User->equals($this->users[0]));
         $this->assertTrue($this->userprefs[1]->User->equals($this->users[1]));
@@ -56,14 +55,14 @@ class FindingTestCase extends \Pheasant\Tests\MysqlTestCase
 
     public function testFindWithReservedWord()
     {
-        User::create(array('group' => 'default'));
+        User::create(['group' => 'default']);
         $users = User::findByGroup('default');
         $this->assertEquals(count($users), 1);
     }
 
     public function testFindMany()
     {
-        $users = User::find("lastname = ? and firstname = ?", 'Kasady', 'Cletus');
+        $users = User::find('lastname = ? and firstname = ?', 'Kasady', 'Cletus');
         $this->assertEquals(count($users), 1);
         $this->assertEquals($users[0]->firstname, 'Cletus');
         $this->assertEquals($users[0]->lastname, 'Kasady');
@@ -78,7 +77,7 @@ class FindingTestCase extends \Pheasant\Tests\MysqlTestCase
 
     public function testFindManyByCriteria()
     {
-        $users = User::find(new Criteria("lastname = ?", array('Kasady')));
+        $users = User::find(new Criteria('lastname = ?', ['Kasady']));
         $this->assertEquals(count($users), 1);
         $this->assertEquals($users[0]->firstname, 'Cletus');
         $this->assertEquals($users[0]->lastname, 'Kasady');
@@ -114,7 +113,7 @@ class FindingTestCase extends \Pheasant\Tests\MysqlTestCase
 
     public function testFindByIn()
     {
-        $cletus = User::one('lastname = ?', array('Llamas','Kasady'));
+        $cletus = User::one('lastname = ?', ['Llamas', 'Kasady']);
         $this->assertEquals($cletus->firstname, 'Cletus');
         $this->assertEquals($cletus->lastname, 'Kasady');
     }
@@ -123,16 +122,15 @@ class FindingTestCase extends \Pheasant\Tests\MysqlTestCase
     // Test find events
     public function testHydrateEventAfterFind()
     {
-        $events = array();
+        $events = [];
 
         $this->pheasant->schema('\Pheasant\Tests\Examples\User')
-            ->events()->register('*', function($e, $obj) use(&$events) {
-                $events []= $e;
+            ->events()->register('*', function ($e, $obj) use (&$events) {
+                $events[] = $e;
             });
 
-
-        $cletus = User::one('lastname = ?', array('Llamas','Kasady'));
-        $this->assertEquals(array('afterHydrate'), $events);
+        $cletus = User::one('lastname = ?', ['Llamas', 'Kasady']);
+        $this->assertEquals(['afterHydrate'], $events);
     }
 
     // ----------------------------------
@@ -140,13 +138,13 @@ class FindingTestCase extends \Pheasant\Tests\MysqlTestCase
 
     public function testFilter()
     {
-        User::import(array(
-            array('firstname'=>'Frank','lastname'=>'Beechworth'),
-            ));
+        User::import([
+            ['firstname' => 'Frank', 'lastname' => 'Beechworth'],
+            ]);
 
         $users = User::find()
-            ->filter("firstname like ?", 'Fra%')
-            ->filter("lastname in (?)", 'Castle')
+            ->filter('firstname like ?', 'Fra%')
+            ->filter('lastname in (?)', 'Castle')
             ;
 
         $this->assertEquals(count($users), 1);
@@ -157,7 +155,7 @@ class FindingTestCase extends \Pheasant\Tests\MysqlTestCase
     public function testFilterViaInvoke()
     {
         $users = User::find();
-        $filtered = $users("firstname = ?", 'Frank');
+        $filtered = $users('firstname = ?', 'Frank');
 
         $this->assertEquals(count($filtered), 1);
         $this->assertEquals($filtered[0]->firstname, 'Frank');
@@ -180,16 +178,15 @@ class FindingTestCase extends \Pheasant\Tests\MysqlTestCase
         $users = User::find('userid = 1');
 
         $this->assertTrue($users[0]->isSaved());
-        $this->assertEquals($users[0]->changes(), array());
+        $this->assertEquals($users[0]->changes(), []);
     }
 
     public function testFindWithArray()
     {
-        User::create(array('lastname' => 'a'));
-        User::create(array('lastname' => 'b'));
-        User::create(array('lastname' => 'c'));
-        $users = User::findByLastname(array('a', 'b'));
+        User::create(['lastname' => 'a']);
+        User::create(['lastname' => 'b']);
+        User::create(['lastname' => 'c']);
+        $users = User::findByLastname(['a', 'b']);
         $this->assertEquals(count($users), 2);
     }
-
 }
